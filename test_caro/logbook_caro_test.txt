@@ -1,0 +1,138 @@
+	
+	(mv testCaro_desesperee.py Config_reco.py for the github repository)
+
+
+	output original de testCaro_desesperee.py
+	/opt/sbg/cms/ui3_data1/ccollard/test_desesp_step3_RAW2DIGI_L1Reco_RECO.root
+
+	14/03/2018:
+	------------
+
+	modification de ../Configuration/StandardSequences/python/ReconstructionCosmics_cff.py
+	pour appeler 
+	#from RecoTracker.Configuration.RecoTrackerP5_cff import *
+	from RecoTracker.Configuration.RecoTrackerTestCaro_cff import *
+
+
+	Dans RecoTrackerTestCaro_cff
+
+	1) tentative d'alleger les codes de reconstruction de traces
+
+	pour cela modification de
+	tracksP5 = cms.Sequence(cosmictracksP5*ctftracksP5*doAllCosmicdEdXEstimators*siPixelClusterShapeCache)
+	par
+	tracksP5 = cms.Sequence(ctftracksP5*doAllCosmicdEdXEstimators*siPixelClusterShapeCache)
+
+	mais ca crache, il faut modifier aussi
+	../RecoTracker/Configuration/python/RecoTrackerP5_EventContent_cff.py
+	(j'ai garde la version originale dans "../RecoTracker/Configuration/python/RecoTrackerP5_EventContent_orig_cff.py" mais je ne savais pas ou modifier le code d'appel...)
+	mais mÃme si je modifie le fichier pour enlever tous les appels les uns apres les autres, le probleme c'est qu'a un moment, c'est  MuonIdProducer/'splitMuons' qui veut 
+	splittedTracksP5 pour remplir le fichier RECO de sortie :(
+
+	--> je repars avec la sequence initiale 
+	tracksP5 = cms.Sequence(cosmictracksP5*ctftracksP5*doAllCosmicdEdXEstimators*siPixelClusterShapeCache)
+	et le fichier ../RecoTracker/Configuration/python/RecoTrackerP5_EventContent_cff.py de depart  ---> ok
+
+	2) modification des seeds de ctftracksP5
+	pour cela remplacement de
+	from RecoTracker.SpecialSeedGenerators.CombinatorialSeedGeneratorForCosmicsP5_cff import *
+	par
+	from RecoTracker.SpecialSeedGenerators.CombinatorialSeedGeneratorForTestCaro_cff import *
+
+	[ccollard@sbgui3 test_caro]$ cmsRun testCaro_desesperee.py
+	----- Begin Fatal Exception 14-Mar-2018 11:23:17 CET-----------------------
+	An exception of category 'ConfigFileReadError' occurred while
+	   [0] Processing the python configuration file named testCaro_desesperee.py
+	Exception Message:
+	python encountered the error: <type 'exceptions.RuntimeError'>
+	An entry in sequence reconstructionCosmics_HcalNZS has no label
+	----- End Fatal Exception -------------------------------------------------
+
+	Il ne veut pas du tout que je change ce fichier meme si c'est une copie exacte de l'autre!!!
+	pourtant il n'y a que RecoTrackerP5_cff.py qui l'appelle!
+
+	--> je reste avec le fichier original mais je lui rajoute des fonctions en bas du fichier
+
+	3) passage a un changement plus drastique : 
+	utilisation  de combinatorialseedinglayersTelescope et combinatorialseedfinderTelescope dans ctftracksP5
+	---> ca tourne!!! 
+
+	-rw-r--r--. 1 ccollard cms 8805487 Mar 14 10:30 /opt/sbg/cms/ui3_data1/ccollard/test_desesp_step3_modif_tracksP5.root
+	-rw-r--r--. 1 ccollard cms 8803175 Mar 14 11:36 /opt/sbg/cms/ui3_data1/ccollard/test_desesp_step3_modif3_tracksP5.root
+
+	Attaching file /opt/sbg/cms/ui3_data1/ccollard/test_desesp_step3_modif_tracksP5.root as _file0...
+	Events->Scan("recoTracks_cosmictrackfinderP5__reRECO.obj.eta():recoTracks_cosmictrackfinderP5__reRECO.obj.phi():recoTracks_cosmictrackfinderP5__reRECO.obj.pt()","recoTracks_cosmictrackfinderP5__reRECO.obj.eta()>-10")
+	***********************************************************
+	*    Row   * Instance * recoTrack * recoTrack * recoTrack *
+	***********************************************************
+	*       15 *        0 * 0.0318998 * -0.922447 * 4.9668884 *
+	*       17 *        0 * -0.541497 * -2.291282 * 4.2562836 *
+	*       60 *        0 * 0.1482563 * -1.717078 * 4.8960047 *
+	*       66 *        0 * 0.2438146 * -1.916581 * 4.9718132 *
+	*       78 *        0 * 0.1468443 * -1.005553 * 4.8598051 *
+	*       82 *        0 * 0.5220356 * -1.509058 * 4.4483586 *
+	*       98 *        0 * 0.0889309 * -1.277475 * 4.9554200 *
+	***********************************************************
+
+	Attaching file /opt/sbg/cms/ui3_data1/ccollard/test_desesp_step3_modif3_tracksP5.root as _file0...
+	Events->Scan("recoTracks_cosmictrackfinderP5__reRECO.obj.eta():recoTracks_cosmictrackfinderP5__reRECO.obj.phi():recoTracks_cosmictrackfinderP5__reRECO.obj.pt()","recoTracks_cosmictrackfinderP5__reRECO.obj.eta()>-10")
+	***********************************************************
+	*    Row   * Instance * recoTrack * recoTrack * recoTrack *
+	***********************************************************
+	*       15 *        0 * 0.0318998 * -0.922447 * 4.9668884 *
+	*       17 *        0 * -0.541497 * -2.291282 * 4.2562836 *
+	*       60 *        0 * 0.1482563 * -1.717078 * 4.8960047 *
+	*       66 *        0 * 0.2438146 * -1.916581 * 4.9718132 *
+	*       78 *        0 * 0.1468443 * -1.005553 * 4.8598051 *
+	*       82 *        0 * 0.5220356 * -1.509058 * 4.4483586 *
+	*       98 *        0 * 0.0889309 * -1.277475 * 4.9554200 *
+	***********************************************************
+	==> 7 selected entries
+	Events->Scan("recoTracks_ctfWithMaterialTracksP5__reRECO.obj.eta():recoTracks_ctfWithMaterialTracksP5__reRECO.obj.phi():recoTracks_ctfWithMaterialTracksP5__reRECO.obj.pt()","recoTracks_ctfWithMaterialTracksP5__reRECO.obj.eta()>-10")
+	***********************************************************
+	*    Row   * Instance * recoTrack * recoTrack * recoTrack *
+	***********************************************************
+	*       15 *        0 * 0.0318202 * -0.922139 * 4.9840989 *
+	*       60 *        0 * 0.1478840 * -1.716519 * 4.9301999 *
+	*       78 *        0 * 0.1471379 * -1.005369 * 4.8989891 *
+	***********************************************************
+	==> 3 selected entries
+
+
+	4) modification des seeds: uniquement parmi les 4 layers les plus hauts : TOB3-4-5-6 pour les triplets dans CombinatorialSeedGeneratorForCosmicsP5_cff.py
+	(pour les pairs c'est deja parmi ceux-la que cela se passe)
+        --> aucun changement 
+
+        5) tentative numero 5 : suppression des simpleCosmicBONSeed* dans RecoTrackerTestCaro_cff.py
+-rw-r--r--. 1 ccollard cms 8805487 Mar 14 10:30 test_desesp_step3_modif_tracksP5.root
+-rw-r--r--. 1 ccollard cms 8803175 Mar 14 11:36 test_desesp_step3_modif3_tracksP5.root
+-rw-r--r--. 1 ccollard cms 8803881 Mar 15 14:52 test_desesp_step3_modif4_tracksP5.root
+-rw-r--r--. 1 ccollard cms 8802155 Mar 15 14:59 test_desesp_step3_modif5_tracksP5.root
+        --> aucun changement
+
+ 	6) suppression de combinedP5SeedsForCTF dans RecoTrackerTestCaro_cff.py
+-rw-r--r--. 1 ccollard cms 8802155 Mar 15 14:59 test_desesp_step3_modif5_tracksP5.root
+-rw-r--r--. 1 ccollard cms 8801930 Mar 15 15:06 test_desesp_step3_modif6_tracksP5.root
+        --> aucun changement observe pour les 2 categories de traces que je regarde
+
+	7) modification de combinatorialseedfinderTelescope.OrderedHitsFactoryPSets dans CombinatorialSeedGeneratorForCosmicsP5_cff.py pour ne prendre en compte que le seeding de paires
+-rw-r--r--. 1 ccollard cms 8801930 Mar 15 15:06 test_desesp_step3_modif6_tracksP5.root
+-rw-r--r--. 1 ccollard cms 8802156 Mar 15 15:11 test_desesp_step3_modif7_tracksP5.root
+        --> aucun changement observe pour les 2 categories de traces que je regarde
+
+
+
+       29/03/18
+	8) add collections with "Telescope" in the reco root file 
+	--> TrajectorySeeds ;)
+
+        9) prendre un seeding debile : combinatorialseedingpairsTS = 'TOB5+TOB6','TOB4+TOB5' --> 'TOB6+TEC9_pos'
+root [2] Events->Scan("recoTracks_ctfWithMaterialTracksP5__reRECO.obj.eta():recoTracks_ctfWithMaterialTracksP5__reRECO.obj.phi():recoTracks_ctfWithMaterialTracksP5__reRECO.obj.pt()","recoTracks_ctfWithMaterialTracksP5__reRECO.obj.eta()>-10")
+***********************************************************
+*    Row   * Instance * recoTrack * recoTrack * recoTrack *
+***********************************************************
+***********************************************************
+		Yes!!!! seeding debile => pas de traces :) :) :)
+
+
+       10) retour au seeding de 8.

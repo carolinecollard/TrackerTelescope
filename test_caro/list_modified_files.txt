@@ -1,0 +1,8 @@
+Configuration/StandardSequences/python/ReconstructionCosmics_cff.py (use my RecoTrackerTestCaro_cff.py)
+
+RecoTracker/Configuration/python/RecoTrackerTestCaro_cff.py         (play with seed and tracking)
+
+RecoTracker/Configuration/python/RecoTrackerP5_EventContent_cff.py  (add seed info in the RECO format)
+
+RecoTracker/SpecialSeedGenerators/python/CombinatorialSeedGeneratorForCosmicsP5_cff.py  (add Telescope seeding modules)
+
